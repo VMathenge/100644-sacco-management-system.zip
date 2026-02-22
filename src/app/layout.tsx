@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Next.js Template",
-  description: "A minimal Next.js starter template",
+  title: "SACCO Management System",
+  description: "Digital SACCO management system for member administration, loans, savings, accounting, and reporting",
 };
 
 export default function RootLayout({
