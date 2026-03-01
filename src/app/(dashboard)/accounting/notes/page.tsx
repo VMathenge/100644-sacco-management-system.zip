@@ -1,9 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db } from "@/db";
-import { accounts, members } from "@/db/schema";
-import { eq } from "drizzle-orm";
 
 // Types
 interface DebitNote {
