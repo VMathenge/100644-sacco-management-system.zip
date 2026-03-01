@@ -108,3 +108,39 @@ export const journalEntries = sqliteTable("journal_entries", {
   entryDate: integer("entry_date", { mode: "timestamp" }).$defaultFn(() => new Date()),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
+
+// Debit notes - documents requesting money from members/customers
+export const debitNotes = sqliteTable("debit_notes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  noteNumber: text("note_number").notNull().unique(),
+  memberId: integer("member_id").references(() => members.id),
+  accountId: integer("account_id").notNull().references(() => accounts.id),
+  amount: real("amount").notNull(),
+  reason: text("reason").notNull(),
+  description: text("description"),
+  status: text("status").notNull().default("pending"), // pending, issued, paid, cancelled
+  dueDate: integer("due_date", { mode: "timestamp" }),
+  referenceId: integer("reference_id"), // reference to related transaction
+  referenceType: text("reference_type"), // loan, savings, other
+  issuedBy: text("issued_by"),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// Credit notes - documents crediting money to members/customers
+export const creditNotes = sqliteTable("credit_notes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  noteNumber: text("note_number").notNull().unique(),
+  memberId: integer("member_id").references(() => members.id),
+  accountId: integer("account_id").notNull().references(() => accounts.id),
+  amount: real("amount").notNull(),
+  reason: text("reason").notNull(),
+  description: text("description"),
+  status: text("status").notNull().default("pending"), // pending, issued, applied, cancelled
+  dueDate: integer("due_date", { mode: "timestamp" }),
+  referenceId: integer("reference_id"), // reference to related transaction
+  referenceType: text("reference_type"), // loan, savings, other
+  issuedBy: text("issued_by"),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});

@@ -2,7 +2,7 @@
 
 ## Current State
 
-**Project Status**: ✅ SACCO Management System Built
+**Project Status**: ✅ SACCO Management System Built with Debit/Credit Notes
 
 A full-featured digital SACCO management system has been built on top of the Next.js starter template. It includes member administration, loans, savings, accounting, and reporting.
 
@@ -26,6 +26,13 @@ A full-featured digital SACCO management system has been built on top of the Nex
 - [x] Sidebar navigation with active state
 - [x] API routes for all CRUD operations
 - [x] Account editing (clickable accounts in chart of accounts, edit page, API for update/delete)
+- [x] Debit and Credit Notes module:
+  - Database tables: debit_notes, credit_notes
+  - API routes for CRUD operations
+  - UI page with tabs for debit/credit notes
+  - Status tracking (pending, issued, paid/applied, cancelled)
+  - Link to members and accounts
+  - Sidebar navigation entry
 
 ## Current Structure
 
@@ -37,6 +44,7 @@ A full-featured digital SACCO management system has been built on top of the Nex
 | `src/app/(dashboard)/savings/` | Savings management | ✅ Ready |
 | `src/app/(dashboard)/transactions/` | Transaction ledger | ✅ Ready |
 | `src/app/(dashboard)/accounting/` | Chart of accounts | ✅ Ready |
+| `src/app/(dashboard)/accounting/notes/` | Debit & Credit notes | ✅ Ready |
 | `src/app/(dashboard)/reports/` | Analytics & reports | ✅ Ready |
 | `src/app/api/` | REST API routes | ✅ Ready |
 | `src/db/` | Database schema & migrations | ✅ Ready |
@@ -53,6 +61,8 @@ A full-featured digital SACCO management system has been built on top of the Nex
 | `loan_repayments` | Loan repayment history |
 | `accounts` | Chart of accounts |
 | `journal_entries` | Double-entry bookkeeping |
+| `debit_notes` | Debit notes for accounting adjustments |
+| `credit_notes` | Credit notes for accounting adjustments |
 
 ## Session History
 
@@ -60,4 +70,5 @@ A full-featured digital SACCO management system has been built on top of the Nex
 |------|---------|
 | Initial | Template created with base setup |
 | 2026-02-22 | Full SACCO management system built |
-| 2026-03-01 | Account editing enabled (clickable accounts, edit page, API)
+| 2026-03-01 | Account editing enabled (clickable accounts, edit page, API) |
+| 2026-03-01 | Debit and Credit Notes module added |
