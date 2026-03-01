@@ -72,3 +72,4 @@ A full-featured digital SACCO management system has been built on top of the Nex
 | 2026-02-22 | Full SACCO management system built |
 | 2026-03-01 | Account editing enabled (clickable accounts, edit page, API) |
 | 2026-03-01 | Debit and Credit Notes module added |
+| 2026-03-01 | Fix: Removed unused db imports from notes page to prevent runtime error |
