@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { accounts, journalEntries } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 async function getAccounts() {
   return db.select().from(accounts).where(eq(accounts.isActive, true)).orderBy(accounts.accountCode);
@@ -140,13 +141,22 @@ export default async function AccountingPage() {
                       </span>
                     </div>
                     {typeAccounts.map((acc) => (
-                      <div key={acc.id} className="px-6 py-3 flex items-center justify-between hover:bg-slate-50">
-                        <div>
-                          <p className="text-sm font-medium text-slate-900">{acc.accountName}</p>
+                      <Link
+                        key={acc.id}
+                        href={`/accounting/edit/${acc.id}`}
+                        className="px-6 py-3 flex items-center justify-between hover:bg-slate-50 cursor-pointer group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <p className="text-sm font-medium text-slate-900 group-hover:text-emerald-600 transition-colors">{acc.accountName}</p>
                           <p className="text-xs text-slate-400">{acc.accountCode}</p>
                         </div>
-                        <p className="text-sm font-semibold text-slate-900">{formatCurrency(acc.balance)}</p>
-                      </div>
+                        <div className="flex items-center gap-3">
+                          <p className="text-sm font-semibold text-slate-900">{formatCurrency(acc.balance)}</p>
+                          <svg className="w-4 h-4 text-slate-300 group-hover:text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </Link>
                     ))}
                   </div>
                 );

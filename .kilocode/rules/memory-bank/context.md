@@ -25,6 +25,7 @@ A full-featured digital SACCO management system has been built on top of the Nex
 - [x] Reports page (member stats, loan portfolio health, top savers, transaction summary)
 - [x] Sidebar navigation with active state
 - [x] API routes for all CRUD operations
+- [x] Account editing (clickable accounts in chart of accounts, edit page, API for update/delete)
 
 ## Current Structure
 
@@ -59,3 +60,4 @@ A full-featured digital SACCO management system has been built on top of the Nex
 |------|---------|
 | Initial | Template created with base setup |
 | 2026-02-22 | Full SACCO management system built |
+| 2026-03-01 | Account editing enabled (clickable accounts, edit page, API)
