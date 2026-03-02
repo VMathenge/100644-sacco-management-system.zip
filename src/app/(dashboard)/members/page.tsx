@@ -15,6 +15,7 @@ async function getMembers(search?: string) {
       status: members.status,
       shareCapital: members.shareCapital,
       joinDate: members.joinDate,
+      photoUrl: members.photoUrl,
       savingsBalance: sql<number>`coalesce((select sum(balance) from savings_accounts where member_id = ${members.id} and status = 'active'), 0)`,
       activeLoans: sql<number>`coalesce((select count(*) from loans where member_id = ${members.id} and status = 'active'), 0)`,
     })
@@ -129,9 +130,15 @@ export default async function MembersPage({
                   <tr key={member.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-semibold text-sm">
-                          {member.firstName[0]}{member.lastName[0]}
-                        </div>
+                        {member.photoUrl ? (
+                          <div className="w-9 h-9 rounded-full overflow-hidden">
+                            <img src={member.photoUrl} alt="Member" className="w-full h-full object-cover" />
+                          </div>
+                        ) : (
+                          <div className="w-9 h-9 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-semibold text-sm">
+                            {member.firstName[0]}{member.lastName[0]}
+                          </div>
+                        )}
                         <div>
                           <p className="font-medium text-slate-900">{member.firstName} {member.lastName}</p>
                           <p className="text-xs text-slate-400">{member.memberNumber}</p>

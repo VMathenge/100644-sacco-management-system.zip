@@ -15,6 +15,7 @@ export const members = sqliteTable("members", {
   status: text("status").notNull().default("active"), // active, inactive, suspended
   shareCapital: real("share_capital").notNull().default(0),
   joinDate: integer("join_date", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  photoUrl: text("photo_url"),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });

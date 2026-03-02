@@ -92,8 +92,8 @@ export default function Sidebar() {
             </svg>
           </div>
           <div>
-            <h1 className="text-white font-bold text-sm leading-tight">SACCO</h1>
-            <p className="text-slate-400 text-xs">Management System</p>
+            <h1 className="text-white font-bold text-sm leading-tight">KIBS SACCO</h1>
+            <p className="text-slate-400 text-xs">MANAGEMENT SYSTEM</p>
           </div>
         </div>
       </div>

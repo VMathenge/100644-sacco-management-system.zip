@@ -84,9 +84,15 @@ export default async function MemberDetailPage({
             </svg>
           </Link>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-bold text-lg">
-              {member.firstName[0]}{member.lastName[0]}
-            </div>
+            {member.photoUrl ? (
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-emerald-500">
+                <img src={member.photoUrl} alt="Member photo" className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-bold text-lg">
+                {member.firstName[0]}{member.lastName[0]}
+              </div>
+            )}
             <div>
               <h1 className="text-2xl font-bold text-slate-900">{member.firstName} {member.lastName}</h1>
               <p className="text-slate-500 text-sm">{member.memberNumber}</p>
@@ -132,6 +138,7 @@ export default async function MemberDetailPage({
           <dl className="space-y-3">
             {[
               { label: "Full Name", value: `${member.firstName} ${member.lastName}` },
+              { label: "Member Number", value: member.memberNumber },
               { label: "Email", value: member.email },
               { label: "Phone", value: member.phone },
               { label: "National ID", value: member.nationalId },
