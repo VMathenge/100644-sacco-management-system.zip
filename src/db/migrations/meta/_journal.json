@@ -15,6 +15,20 @@
       "when": 1709280000000,
       "tag": "0001_debit_credit_notes",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1773000000000,
+      "tag": "0002_add_member_photo",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1773500000000,
+      "tag": "0003_fund_transfers_schemes",
+      "breakpoints": true
     }
   ]
 }

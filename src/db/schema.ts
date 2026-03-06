@@ -145,3 +145,61 @@ export const creditNotes = sqliteTable("credit_notes", {
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
+
+// Fund transfers - for transferring funds between accounts
+export const fundTransfers = sqliteTable("fund_transfers", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  transferNumber: text("transfer_number").notNull().unique(),
+  memberId: integer("member_id").references(() => members.id),
+  fromAccountId: integer("from_account_id").notNull().references(() => accounts.id),
+  toAccountId: integer("to_account_id").notNull().references(() => accounts.id),
+  amount: real("amount").notNull(),
+  transferType: text("transfer_type").notNull(), // internal, external, member_to_member, account_to_account
+  description: text("description"),
+  referenceNumber: text("reference_number"), // external reference
+  status: text("status").notNull().default("pending"), // pending, completed, failed, cancelled
+  processedBy: text("processed_by"),
+  processedAt: integer("processed_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// Schemes - to create different schemes (e.g., welfare, education, emergency fund)
+export const schemes = sqliteTable("schemes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  schemeCode: text("scheme_code").notNull().unique(),
+  schemeName: text("scheme_name").notNull(),
+  description: text("description"),
+  schemeType: text("scheme_type").notNull(), // welfare, education, emergency, burial, medical, custom
+  contributionAmount: real("contribution_amount").notNull().default(0),
+  contributionFrequency: text("contribution_frequency"), // monthly, quarterly, annually, one-time
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  startDate: integer("start_date", { mode: "timestamp" }),
+  endDate: integer("end_date", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// Scheme accounts - accounts affected by each scheme
+export const schemeAccounts = sqliteTable("scheme_accounts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  schemeId: integer("scheme_id").notNull().references(() => schemes.id),
+  accountId: integer("account_id").notNull().references(() => accounts.id),
+  accountRole: text("account_role").notNull(), // contribution, benefit, expense, reserve
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// Scheme contributions - track member contributions to schemes
+export const schemeContributions = sqliteTable("scheme_contributions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  schemeId: integer("scheme_id").notNull().references(() => schemes.id),
+  memberId: integer("member_id").notNull().references(() => members.id),
+  amount: real("amount").notNull(),
+  paymentMethod: text("payment_method"), // cash, bank, mpesa, deduction
+  referenceNumber: text("reference_number"),
+  status: text("status").notNull().default("pending"), // pending, completed, failed
+  processedBy: text("processed_by"),
+  contributionDate: integer("contribution_date", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});

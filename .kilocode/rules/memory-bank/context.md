@@ -2,9 +2,9 @@
 
 ## Current State
 
-**Project Status**: ✅ SACCO Management System Built with Debit/Credit Notes
+**Project Status**: ✅ SACCO Management System Built with Fund Transfers and Schemes
 
-A full-featured digital SACCO management system has been built on top of the Next.js starter template. It includes member administration, loans, savings, accounting, and reporting.
+A full-featured digital SACCO management system has been built on top of the Next.js starter template. It includes member administration, loans, savings, accounting, transfers, schemes, and reporting.
 
 ## Recently Completed
 
@@ -33,6 +33,22 @@ A full-featured digital SACCO management system has been built on top of the Nex
   - Status tracking (pending, issued, paid/applied, cancelled)
   - Link to members and accounts
   - Sidebar navigation entry
+- [x] Fund Transfers module:
+  - Database table: fund_transfers
+  - API route for CRUD operations
+  - UI page with transfer form
+  - Transfer types: internal, external, member_to_member, account_to_account
+  - Automatic balance updates
+  - Sidebar navigation entry
+- [x] Schemes module:
+  - Database tables: schemes, scheme_accounts, scheme_contributions
+  - API route for CRUD operations
+  - UI page with scheme cards
+  - Scheme types: welfare, education, emergency, burial, medical, custom
+  - Link accounts to schemes with roles (contribution, benefit, expense, reserve)
+  - Contribution tracking
+  - Sidebar navigation entry
+- [x] Module totals on accounting page
 
 ## Current Structure
 
@@ -43,6 +59,8 @@ A full-featured digital SACCO management system has been built on top of the Nex
 | `src/app/(dashboard)/loans/` | Loan management | ✅ Ready |
 | `src/app/(dashboard)/savings/` | Savings management | ✅ Ready |
 | `src/app/(dashboard)/transactions/` | Transaction ledger | ✅ Ready |
+| `src/app/(dashboard)/transfers/` | Fund transfers | ✅ Ready |
+| `src/app/(dashboard)/schemes/` | Schemes management | ✅ Ready |
 | `src/app/(dashboard)/accounting/` | Chart of accounts | ✅ Ready |
 | `src/app/(dashboard)/accounting/notes/` | Debit & Credit notes | ✅ Ready |
 | `src/app/(dashboard)/reports/` | Analytics & reports | ✅ Ready |
@@ -63,6 +81,10 @@ A full-featured digital SACCO management system has been built on top of the Nex
 | `journal_entries` | Double-entry bookkeeping |
 | `debit_notes` | Debit notes for accounting adjustments |
 | `credit_notes` | Credit notes for accounting adjustments |
+| `fund_transfers` | Fund transfers between accounts |
+| `schemes` | SACCO schemes (welfare, education, etc.) |
+| `scheme_accounts` | Accounts linked to schemes |
+| `scheme_contributions` | Member contributions to schemes |
 
 ## Session History
 
@@ -74,3 +96,5 @@ A full-featured digital SACCO management system has been built on top of the Nex
 | 2026-03-01 | Debit and Credit Notes module added |
 | 2026-03-01 | Fix: Removed unused db imports from notes page to prevent runtime error |
 | 2026-03-06 | Add module totals to accounting (savings, loans, share capital, repayments) with account type totals in chart of accounts |
+| 2026-03-06 | Fund Transfers module (transfer funds between accounts) |
+| 2026-03-06 | Schemes module (create schemes and link to accounts)
