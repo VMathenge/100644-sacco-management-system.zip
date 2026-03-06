@@ -1,6 +1,6 @@
 import { db } from "@/db";
-import { members, savingsAccounts, loans, transactions } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { members, savingsAccounts, loans, transactions, schemeContributions, schemes } from "@/db/schema";
+import { eq, sql, and, desc } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -73,6 +73,70 @@ export default async function MemberDetailPage({
     .filter((l) => l.status === "active")
     .reduce((sum, l) => sum + l.balance, 0);
 
+  // Get scheme contributions for this member
+  const memberSchemeContributions = await db
+    .select()
+    .from(schemeContributions)
+    .where(
+      and(
+        eq(schemeContributions.memberId, memberId),
+        eq(schemeContributions.status, "completed")
+      )
+    )
+    .orderBy(desc(schemeContributions.contributionDate));
+
+  // Get unique scheme IDs
+  const memberSchemeIds = [...new Set(memberSchemeContributions.map((c) => c.schemeId))];
+
+  // Get scheme details
+  const memberSchemes = await Promise.all(
+    memberSchemeIds.map(async (schemeId) => {
+      const [scheme] = await db
+        .select()
+        .from(schemes)
+        .where(eq(schemes.id, schemeId))
+        .limit(1);
+      if (!scheme) return null;
+      const schemeTotal = memberSchemeContributions
+        .filter((c) => c.schemeId === schemeId)
+        .reduce((sum, c) => sum + c.amount, 0);
+      return {
+        id: scheme.id,
+        schemeCode: scheme.schemeCode,
+        schemeName: scheme.schemeName,
+        schemeType: scheme.schemeType,
+        contributionAmount: scheme.contributionAmount,
+        contributionFrequency: scheme.contributionFrequency,
+        totalContributed: schemeTotal,
+        isActive: scheme.isActive,
+      };
+    })
+  );
+
+  const totalSchemeContributions = memberSchemeContributions.reduce((sum, c) => sum + c.amount, 0);
+  
+  // Calculate transaction breakdowns
+  const deposits = recentTransactions
+    .filter((t) => t.type === "deposit")
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const withdrawals = recentTransactions
+    .filter((t) => t.type === "withdrawal")
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const loanRepaymentsTx = recentTransactions
+    .filter((t) => t.type === "loan_repayment")
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const fees = recentTransactions
+    .filter((t) => t.type === "fee")
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const deductions = loanRepaymentsTx + fees;
+  
+  // Total contributions = savings + share capital + scheme contributions
+  const totalContributions = totalSavings + member.shareCapital + totalSchemeContributions;
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -130,6 +194,92 @@ export default async function MemberDetailPage({
           <p className="text-xs text-slate-400 mt-1">Member since {formatDate(member.joinDate)}</p>
         </div>
       </div>
+
+      {/* Financial Overview Dashboard */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <h2 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          Financial Overview
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="p-4 bg-emerald-50 rounded-lg">
+            <p className="text-xs text-emerald-600 font-medium uppercase">Deposits</p>
+            <p className="text-lg font-bold text-emerald-700 mt-1">{formatCurrency(deposits)}</p>
+          </div>
+          <div className="p-4 bg-red-50 rounded-lg">
+            <p className="text-xs text-red-600 font-medium uppercase">Withdrawals</p>
+            <p className="text-lg font-bold text-red-700 mt-1">{formatCurrency(withdrawals)}</p>
+          </div>
+          <div className="p-4 bg-orange-50 rounded-lg">
+            <p className="text-xs text-orange-600 font-medium uppercase">Deductions</p>
+            <p className="text-lg font-bold text-orange-700 mt-1">{formatCurrency(deductions)}</p>
+          </div>
+          <div className="p-4 bg-blue-50 rounded-lg">
+            <p className="text-xs text-blue-600 font-medium uppercase">Loans Taken</p>
+            <p className="text-lg font-bold text-blue-700 mt-1">{formatCurrency(memberLoans.reduce((s, l) => s + l.principalAmount, 0))}</p>
+          </div>
+          <div className="p-4 bg-purple-50 rounded-lg">
+            <p className="text-xs text-purple-600 font-medium uppercase">Scheme Contrib.</p>
+            <p className="text-lg font-bold text-purple-700 mt-1">{formatCurrency(totalSchemeContributions)}</p>
+          </div>
+          <div className="p-4 bg-emerald-50 rounded-lg">
+            <p className="text-xs text-emerald-600 font-medium uppercase">Total Contrib.</p>
+            <p className="text-lg font-bold text-emerald-700 mt-1">{formatCurrency(totalContributions)}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Schemes Section */}
+      {memberSchemes.length > 0 && (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-slate-900 flex items-center gap-2">
+              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              My Schemes ({memberSchemes.length})
+            </h2>
+            <Link href="/schemes" className="text-emerald-600 text-sm hover:underline">
+              View all schemes
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {memberSchemes.filter(Boolean).map((scheme: any) => (
+              <div key={scheme.id} className="p-4 border border-slate-200 rounded-lg hover:border-purple-300 transition-colors">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-medium text-slate-900">{scheme.schemeName}</h3>
+                    <p className="text-xs text-slate-500">{scheme.schemeCode}</p>
+                  </div>
+                  <span className={`text-xs font-medium px-2 py-1 rounded-full capitalize ${scheme.isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
+                    {scheme.isActive ? "Active" : "Inactive"}
+                  </span>
+                </div>
+                <div className="mt-3 pt-3 border-t border-slate-100">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Type:</span>
+                    <span className="text-slate-700 capitalize">{scheme.schemeType}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mt-1">
+                    <span className="text-slate-500">Frequency:</span>
+                    <span className="text-slate-700 capitalize">{scheme.contributionFrequency || "—"}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mt-1">
+                    <span className="text-slate-500">Required:</span>
+                    <span className="text-slate-700">{formatCurrency(scheme.contributionAmount)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mt-2 pt-2 border-t border-slate-100 font-medium">
+                    <span className="text-purple-700">Total Contributed:</span>
+                    <span className="text-purple-700">{formatCurrency(scheme.totalContributed)}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Personal Details */}
