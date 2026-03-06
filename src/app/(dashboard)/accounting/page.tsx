@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { accounts, journalEntries, savingsAccounts, loans, members, loanRepayments } from "@/db/schema";
+import { accounts, journalEntries, savingsAccounts, loans, members, loanRepayments, savingsSchemes, schemes, schemeAccounts, schemeContributions } from "@/db/schema";
 import { eq, sql, and, inArray } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -39,12 +39,39 @@ async function getModuleTotals() {
     .from(loans)
     .where(eq(loans.status, "approved"));
 
+  // Total savings schemes (sum of minimum balances for all active schemes)
+  const savingsSchemesTotal = await db
+    .select({ total: sql<number>`COALESCE(SUM(${savingsSchemes.minimumBalance}), 0)` })
+    .from(savingsSchemes)
+    .where(eq(savingsSchemes.isActive, true));
+
+  // Total scheme contributions received
+  const schemeContributionsTotal = await db
+    .select({ total: sql<number>`COALESCE(SUM(${schemeContributions.amount}), 0)` })
+    .from(schemeContributions)
+    .where(eq(schemeContributions.status, "completed"));
+
+  // Total balance of accounts linked to schemes
+  const schemeAccountsData = await db
+    .select({
+      accountId: schemeAccounts.accountId,
+      accountBalance: accounts.balance,
+    })
+    .from(schemeAccounts)
+    .leftJoin(accounts, eq(schemeAccounts.accountId, accounts.id))
+    .where(eq(schemeAccounts.isActive, true));
+
+  const schemeAccountsTotal = schemeAccountsData.reduce((sum, sa) => sum + (sa.accountBalance || 0), 0);
+
   return {
     totalSavings: savingsTotal[0]?.total || 0,
     totalLoansOutstanding: loansTotal[0]?.total || 0,
     totalShareCapital: shareCapitalTotal[0]?.total || 0,
     totalRepayments: repaymentsTotal[0]?.total || 0,
     totalPendingLoans: pendingLoans[0]?.total || 0,
+    totalSavingsSchemes: savingsSchemesTotal[0]?.total || 0,
+    totalSchemeContributions: schemeContributionsTotal[0]?.total || 0,
+    totalSchemeAccounts: schemeAccountsTotal,
   };
 }
 
@@ -134,7 +161,7 @@ export default async function AccountingPage() {
       {/* Module Totals Summary */}
       <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl p-5 text-white">
         <h2 className="font-semibold text-lg mb-4">Module Totals</h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
           <div>
             <p className="text-emerald-100 text-sm">Total Savings</p>
             <p className="text-xl font-bold">{formatCurrency(moduleTotals.totalSavings)}</p>
@@ -154,6 +181,18 @@ export default async function AccountingPage() {
           <div>
             <p className="text-emerald-100 text-sm">Pending Disbursement</p>
             <p className="text-xl font-bold">{formatCurrency(moduleTotals.totalPendingLoans)}</p>
+          </div>
+          <div>
+            <p className="text-emerald-100 text-sm">Savings Schemes</p>
+            <p className="text-xl font-bold">{formatCurrency(moduleTotals.totalSavingsSchemes)}</p>
+          </div>
+          <div>
+            <p className="text-emerald-100 text-sm">Scheme Contributions</p>
+            <p className="text-xl font-bold">{formatCurrency(moduleTotals.totalSchemeContributions)}</p>
+          </div>
+          <div>
+            <p className="text-emerald-100 text-sm">Scheme Accounts</p>
+            <p className="text-xl font-bold">{formatCurrency(moduleTotals.totalSchemeAccounts)}</p>
           </div>
         </div>
       </div>

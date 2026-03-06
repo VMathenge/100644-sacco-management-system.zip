@@ -24,6 +24,7 @@ interface Scheme {
   endDate: Date | null;
   createdAt: Date;
   accounts: SchemeAccount[];
+  totalBalance: number;
 }
 
 interface Account {
@@ -462,6 +463,10 @@ export default function SchemesPage() {
                         <span className="text-blue-600 capitalize">{acct.accountRole}</span>
                       </div>
                     ))}
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-gray-100 flex justify-between text-sm font-medium">
+                    <span className="text-gray-700">Total Account Balance:</span>
+                    <span className="text-green-600">{scheme.totalBalance.toLocaleString("en-KE", { style: "currency", currency: "KES" })}</span>
                   </div>
                 </div>
               )}

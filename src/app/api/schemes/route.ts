@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { schemes, schemeAccounts, accounts } from "@/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 
 export async function GET() {
   try {
@@ -33,7 +33,7 @@ export async function GET() {
           .from(schemeAccounts)
           .where(eq(schemeAccounts.schemeId, scheme.id));
 
-        // Get account details
+        // Get account details including balance
         const accountsList = await Promise.all(
           schemeAccts.map(async (sa) => {
             const acct = await db
@@ -41,6 +41,7 @@ export async function GET() {
                 accountCode: accounts.accountCode,
                 accountName: accounts.accountName,
                 accountType: accounts.accountType,
+                balance: accounts.balance,
               })
               .from(accounts)
               .where(eq(accounts.id, sa.accountId))
@@ -50,13 +51,18 @@ export async function GET() {
               accountCode: acct[0]?.accountCode,
               accountName: acct[0]?.accountName,
               accountType: acct[0]?.accountType,
+              balance: acct[0]?.balance || 0,
             };
           })
         );
 
+        // Calculate total balance of linked accounts
+        const totalBalance = accountsList.reduce((sum, acc) => sum + (acc.balance || 0), 0);
+
         return {
           ...scheme,
           accounts: accountsList,
+          totalBalance,
         };
       })
     );
