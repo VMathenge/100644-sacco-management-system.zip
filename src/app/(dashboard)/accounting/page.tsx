@@ -3,6 +3,7 @@ import { accounts, journalEntries } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AddAccountButton, DeleteAccountButton } from "./AccountActions";
 
 async function getAccounts() {
   return db.select().from(accounts).where(eq(accounts.isActive, true)).orderBy(accounts.accountCode);
@@ -87,15 +88,7 @@ export default async function AccountingPage() {
           <h1 className="text-2xl font-bold text-slate-900">Accounting</h1>
           <p className="text-slate-500 text-sm mt-1">Chart of accounts and journal entries</p>
         </div>
-        <Link
-          href="/accounting/setup"
-          className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Setup Accounts
-        </Link>
+        <AddAccountButton />
       </div>
 
       {/* Financial Summary */}
@@ -141,22 +134,30 @@ export default async function AccountingPage() {
                       </span>
                     </div>
                     {typeAccounts.map((acc) => (
-                      <Link
+                      <div
                         key={acc.id}
-                        href={`/accounting/edit/${acc.id}`}
                         className="px-6 py-3 flex items-center justify-between hover:bg-slate-50 cursor-pointer group"
                       >
-                        <div className="flex items-center gap-3">
-                          <p className="text-sm font-medium text-slate-900 group-hover:text-emerald-600 transition-colors">{acc.accountName}</p>
-                          <p className="text-xs text-slate-400">{acc.accountCode}</p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <p className="text-sm font-semibold text-slate-900">{formatCurrency(acc.balance)}</p>
-                          <svg className="w-4 h-4 text-slate-300 group-hover:text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </Link>
+                        <Link
+                          href={`/accounting/edit/${acc.id}`}
+                          className="flex-1 flex items-center gap-3"
+                        >
+                          <div>
+                            <p className="text-sm font-medium text-slate-900 group-hover:text-emerald-600 transition-colors">{acc.accountName}</p>
+                            <p className="text-xs text-slate-400">{acc.accountCode}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <p className="text-sm font-semibold text-slate-900">{formatCurrency(acc.balance)}</p>
+                            <svg className="w-4 h-4 text-slate-300 group-hover:text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </Link>
+                        <DeleteAccountButton 
+                          accountId={acc.id} 
+                          accountName={acc.accountName} 
+                        />
+                      </div>
                     ))}
                   </div>
                 );

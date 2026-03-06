@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { members, savingsAccounts, loans } from "@/db/schema";
 import { eq, sql, like, or } from "drizzle-orm";
 import Link from "next/link";
+import MemberActions from "./MemberActions";
 
 async function getMembers(search?: string) {
   const query = db
@@ -166,20 +167,10 @@ export default async function MembersPage({
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={`/members/${member.id}`}
-                          className="text-xs text-emerald-600 font-medium hover:underline"
-                        >
-                          View
-                        </Link>
-                        <Link
-                          href={`/members/${member.id}/edit`}
-                          className="text-xs text-slate-500 font-medium hover:underline"
-                        >
-                          Edit
-                        </Link>
-                      </div>
+                      <MemberActions 
+                        memberId={member.id} 
+                        memberName={`${member.firstName} ${member.lastName}`} 
+                      />
                     </td>
                   </tr>
                 ))

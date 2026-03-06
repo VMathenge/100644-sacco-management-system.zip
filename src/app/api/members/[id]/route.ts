@@ -72,3 +72,26 @@ export async function PATCH(
     return NextResponse.json({ error: "Failed to update member" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    
+    const [deleted] = await db
+      .delete(members)
+      .where(eq(members.id, parseInt(id)))
+      .returning();
+
+    if (!deleted) {
+      return NextResponse.json({ error: "Member not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "Member deleted successfully", member: deleted });
+  } catch (error) {
+    console.error("Error deleting member:", error);
+    return NextResponse.json({ error: "Failed to delete member" }, { status: 500 });
+  }
+}
