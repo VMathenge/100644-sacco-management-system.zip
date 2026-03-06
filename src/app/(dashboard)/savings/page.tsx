@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { savingsAccounts, members } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import Link from "next/link";
+import SavingsSchemeManager from "@/components/savings/SavingsSchemeManager";
 
 async function getSavingsAccounts() {
   return db
@@ -93,6 +94,9 @@ export default async function SavingsPage() {
           </div>
         ))}
       </div>
+
+      {/* Savings Scheme Types Manager */}
+      <SavingsSchemeManager />
 
       {/* Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">

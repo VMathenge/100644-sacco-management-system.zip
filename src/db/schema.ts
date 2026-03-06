@@ -33,6 +33,19 @@ export const savingsAccounts = sqliteTable("savings_accounts", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
 
+// Savings scheme types - user-defined savings schemes/accounts (e.g., emergency fund, education, holiday)
+export const savingsSchemes = sqliteTable("savings_schemes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  schemeCode: text("scheme_code").notNull().unique(),
+  schemeName: text("scheme_name").notNull(),
+  description: text("description"),
+  defaultInterestRate: real("default_interest_rate").notNull().default(3.5),
+  minimumBalance: real("minimum_balance").notNull().default(0),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
 // Loans table
 export const loans = sqliteTable("loans", {
   id: integer("id").primaryKey({ autoIncrement: true }),
