@@ -1,12 +1,51 @@
 import { db } from "@/db";
-import { accounts, journalEntries } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { accounts, journalEntries, savingsAccounts, loans, members, loanRepayments } from "@/db/schema";
+import { eq, sql, and, inArray } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddAccountButton, DeleteAccountButton } from "./AccountActions";
 
 async function getAccounts() {
   return db.select().from(accounts).where(eq(accounts.isActive, true)).orderBy(accounts.accountCode);
+}
+
+async function getModuleTotals() {
+  // Total savings balance
+  const savingsTotal = await db
+    .select({ total: sql<number>`COALESCE(SUM(${savingsAccounts.balance}), 0)` })
+    .from(savingsAccounts)
+    .where(eq(savingsAccounts.status, "active"));
+
+  // Total loans outstanding (active loans with balance > 0)
+  const loansTotal = await db
+    .select({ total: sql<number>`COALESCE(SUM(${loans.balance}), 0)` })
+    .from(loans)
+    .where(and(eq(loans.status, "active"), sql`${loans.balance} > 0`));
+
+  // Total share capital
+  const shareCapitalTotal = await db
+    .select({ total: sql<number>`COALESCE(SUM(${members.shareCapital}), 0)` })
+    .from(members)
+    .where(eq(members.status, "active"));
+
+  // Total loan repayments received
+  const repaymentsTotal = await db
+    .select({ total: sql<number>`COALESCE(SUM(${loanRepayments.amount}), 0)` })
+    .from(loanRepayments);
+
+  // Total pending loans (approved but not disbursed)
+  const pendingLoans = await db
+    .select({ total: sql<number>`COALESCE(SUM(${loans.totalAmount}), 0)` })
+    .from(loans)
+    .where(eq(loans.status, "approved"));
+
+  return {
+    totalSavings: savingsTotal[0]?.total || 0,
+    totalLoansOutstanding: loansTotal[0]?.total || 0,
+    totalShareCapital: shareCapitalTotal[0]?.total || 0,
+    totalRepayments: repaymentsTotal[0]?.total || 0,
+    totalPendingLoans: pendingLoans[0]?.total || 0,
+  };
 }
 
 async function getRecentJournalEntries() {
@@ -53,9 +92,10 @@ const accountTypeColors: Record<string, string> = {
 };
 
 export default async function AccountingPage() {
-  const [chartOfAccounts, recentEntries] = await Promise.all([
+  const [chartOfAccounts, recentEntries, moduleTotals] = await Promise.all([
     getAccounts(),
     getRecentJournalEntries(),
+    getModuleTotals(),
   ]);
 
   const totalAssets = chartOfAccounts
@@ -89,6 +129,33 @@ export default async function AccountingPage() {
           <p className="text-slate-500 text-sm mt-1">Chart of accounts and journal entries</p>
         </div>
         <AddAccountButton />
+      </div>
+
+      {/* Module Totals Summary */}
+      <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl p-5 text-white">
+        <h2 className="font-semibold text-lg mb-4">Module Totals</h2>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div>
+            <p className="text-emerald-100 text-sm">Total Savings</p>
+            <p className="text-xl font-bold">{formatCurrency(moduleTotals.totalSavings)}</p>
+          </div>
+          <div>
+            <p className="text-emerald-100 text-sm">Loans Outstanding</p>
+            <p className="text-xl font-bold">{formatCurrency(moduleTotals.totalLoansOutstanding)}</p>
+          </div>
+          <div>
+            <p className="text-emerald-100 text-sm">Share Capital</p>
+            <p className="text-xl font-bold">{formatCurrency(moduleTotals.totalShareCapital)}</p>
+          </div>
+          <div>
+            <p className="text-emerald-100 text-sm">Loan Repayments</p>
+            <p className="text-xl font-bold">{formatCurrency(moduleTotals.totalRepayments)}</p>
+          </div>
+          <div>
+            <p className="text-emerald-100 text-sm">Pending Disbursement</p>
+            <p className="text-xl font-bold">{formatCurrency(moduleTotals.totalPendingLoans)}</p>
+          </div>
+        </div>
       </div>
 
       {/* Financial Summary */}
@@ -126,6 +193,7 @@ export default async function AccountingPage() {
               {accountTypes.map((type) => {
                 const typeAccounts = chartOfAccounts.filter((a) => a.accountType === type);
                 if (typeAccounts.length === 0) return null;
+                const typeTotal = typeAccounts.reduce((sum, a) => sum + a.balance, 0);
                 return (
                   <div key={type}>
                     <div className="px-6 py-2 bg-slate-50">
@@ -159,6 +227,11 @@ export default async function AccountingPage() {
                         />
                       </div>
                     ))}
+                    {/* Type Total Row */}
+                    <div className="px-6 py-3 bg-slate-100 border-t border-slate-200 flex items-center justify-between">
+                      <p className="text-sm font-bold text-slate-700">{type.charAt(0).toUpperCase() + type.slice(1)} Total</p>
+                      <p className="text-sm font-bold text-slate-900">{formatCurrency(typeTotal)}</p>
+                    </div>
                   </div>
                 );
               })}
