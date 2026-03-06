@@ -76,7 +76,7 @@ export default function TransfersPage() {
 
       if (Array.isArray(transfersData)) setTransfers(transfersData);
       if (Array.isArray(accountsData)) setAccounts(accountsData);
-      if (Array.isArray(membersData)) setMembers(membersData);
+      if (Array.isArray(membersData?.members)) setMembers(membersData.members);
     } catch (err) {
       console.error("Error fetching data:", err);
     } finally {
